@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
+import { authRouter } from "./routes/authRouter.js";
 const app = express();
 
 dotenv.config();
@@ -15,6 +16,8 @@ app.use(
   })
 );
 app.use(cookieParser());
+
+app.use('/api', authRouter)
 
 const url = process.env.CONNECTION_URL.replace(
   "<password>",

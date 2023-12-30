@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import express from "express";
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
-import { User } from "../models/userModel";
+import { User } from "../models/userModel.js";
 
 export const register = async (req, res) => {
   try {
@@ -67,6 +67,24 @@ export const logout = async (req, res) => {
   }
 };
 
+export const refreshToken = async (req,res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken
+    if(!refreshToken) return res.status(401).json({message: 'Refresh Token is Missing'})
+
+    console.log('REFRESH TOKEN', refreshToken);
+
+    const decoded = jwt.verify(refreshToken, process.env.REFRESH_KEY)
+
+    const findUser = await User.findById(decoded.userId)
+    if (!findUser) return res.status(404).json({ message: 'User Not Found' })
+    const newToken = generateAccessToken(findUser)
+    res.status(200).json({ token: newToken })
+  } catch (error) {
+    res.status(500).json({ message: error.message });//401 ola biler
+  }
+}
+
 const generateAccessToken = (user) => {
   return jwt.sign(
     {
@@ -78,6 +96,8 @@ const generateAccessToken = (user) => {
     { expiresIn: "2h" }
   );
 };
+
+
 
 const generateRefreshToken = (user) => {
   return jwt.sign(
